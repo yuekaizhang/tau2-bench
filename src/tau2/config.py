@@ -21,9 +21,19 @@ DEFAULT_LLM_TEMPERATURE_USER = 0.0
 DEFAULT_LLM_ARGS_AGENT = {"temperature": DEFAULT_LLM_TEMPERATURE_AGENT}
 DEFAULT_LLM_ARGS_USER = {"temperature": DEFAULT_LLM_TEMPERATURE_USER}
 
-DEFAULT_LLM_NL_ASSERTIONS = "gpt-4.1-2025-04-14"
+# Local patch: allow overriding the NL-assertions judge via env vars
+# (no OpenAI access on this cluster; point at an OpenAI-compatible gateway).
+import json as _json
+import os as _os
+
+DEFAULT_LLM_NL_ASSERTIONS = _os.environ.get(
+    "TAU2_NL_ASSERTIONS_MODEL", "gpt-4.1-2025-04-14"
+)
 DEFAULT_LLM_NL_ASSERTIONS_TEMPERATURE = 0.0
-DEFAULT_LLM_NL_ASSERTIONS_ARGS = {"temperature": DEFAULT_LLM_NL_ASSERTIONS_TEMPERATURE}
+DEFAULT_LLM_NL_ASSERTIONS_ARGS = {
+    "temperature": DEFAULT_LLM_NL_ASSERTIONS_TEMPERATURE,
+    **_json.loads(_os.environ.get("TAU2_NL_ASSERTIONS_ARGS", "{}")),
+}
 
 DEFAULT_LLM_ENV_INTERFACE = "gpt-4.1-2025-04-14"
 DEFAULT_LLM_ENV_INTERFACE_TEMPERATURE = 0.0

@@ -21,6 +21,28 @@ def synthesize_voice(
     """Synthesize voice from text using the specified configuration."""
     if provider == "elevenlabs":
         audio_data = tts_elevenlabs(text=text, config=provider_config)
+    elif provider == "chatterbox":
+        # Local patch: Chatterbox-Turbo served by chatterbox_server.py
+        # (no cluster access to ElevenLabs). Returns raw PCM_S16LE mono.
+        import os
+
+        import requests
+
+        from tau2.data_model.audio import PCM_SAMPLE_RATE, AudioEncoding, AudioFormat
+
+        base_url = os.environ.get("CHATTERBOX_TTS_URL", "http://localhost:8002")
+        resp = requests.post(
+            f"{base_url}/tts",
+            json={"text": text, "sample_rate": PCM_SAMPLE_RATE},
+            timeout=300,
+        )
+        resp.raise_for_status()
+        audio_data = AudioData(
+            data=resp.content,
+            format=AudioFormat(
+                encoding=AudioEncoding.PCM_S16LE, sample_rate=PCM_SAMPLE_RATE
+            ),
+        )
     else:
         raise ValueError(f"Unsupported synthesis provider: {provider}")
 

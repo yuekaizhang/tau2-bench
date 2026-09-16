@@ -220,6 +220,11 @@ def main():
     p.add_argument("--num-trials", type=int, default=1)
     p.add_argument("--num-tasks", type=int, default=None)
     p.add_argument("--task-ids", nargs="*", default=None)
+    p.add_argument(
+        "--task-shard",
+        default=None,
+        help="k/n: keep tasks with index %% n == k (applied after --task-ids/--num-tasks; for splitting long runs across cluster jobs)",
+    )
     p.add_argument("--max-steps", type=int, default=100)
     p.add_argument("--workers", type=int, default=8)
     p.add_argument("--seed", type=int, default=300)
@@ -231,6 +236,9 @@ def main():
         tasks = [t for t in tasks if t.id in set(args.task_ids)]
     if args.num_tasks:
         tasks = tasks[: args.num_tasks]
+    if args.task_shard:
+        k, n = (int(x) for x in args.task_shard.split("/"))
+        tasks = [t for i, t in enumerate(tasks) if i % n == k]
 
     out_dir = Path(__file__).parent / "voice_results" / args.save_to
     out_dir.mkdir(parents=True, exist_ok=True)
